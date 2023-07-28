@@ -1,7 +1,8 @@
-package com.products.steps;
+package com.products.productinfo;
 
 
 import com.products.constants.EndPoints;
+import com.products.constants.Path;
 import com.products.model.ProductsPojo;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
@@ -11,6 +12,14 @@ import net.thucydides.core.annotations.Step;
 import static io.restassured.RestAssured.given;
 
 public class ProductsSteps {
+    @Step("get list of products")
+    public ValidatableResponse getListOfProducts(){
+       return SerenityRest .given()
+                .basePath(Path.PRODUCTS)
+                .when()
+                .get()
+                .then();
+    }
     @Step("create a new product")
     public ValidatableResponse postAddNewProduct(String name,String type, int price,String upc, int shipping,String description, String manufacturer,String model, String url){
         ProductsPojo pj = new ProductsPojo();
@@ -25,11 +34,13 @@ public class ProductsSteps {
         pj.setUrl(url);
 
         return SerenityRest .given()
+                .log()
+                .all()
                 .header("Content-Type","application/json")
                 .body(pj)
                 .when()
                 .post()
-                .then();
+                .then().log().all();
     }
     @Step("search product by ID")
     public ValidatableResponse getCreatedProductById(int productID){
@@ -41,17 +52,25 @@ public class ProductsSteps {
                 .log().all();
     }
     @Step("update sing details")
-    public ValidatableResponse updateCreatedID( int productID,String Newname,String type, int price,String upc, int shipping,String description, String manufacturer,String model, String url){
+    public ValidatableResponse updateCreatedID( int productID,String name,String type, int price,String upc, int shipping,String description, String manufacturer,String model, String url){
         ProductsPojo pj = new ProductsPojo();
-        pj.setName(Newname);
+        pj.setName(name);
+        pj.setType(type);
+        pj.setPrice(price);
+        pj.setUpc(upc);
+        pj.setShipping(shipping);
+        pj.setDescription(description);
+        pj.setManufacturer(manufacturer);
+        pj.setModel(model);
+        pj.setUrl(url);
         return (ValidatableResponse) SerenityRest .given()
                 .log().all()
                 .header("Content-Type","application/json")
                 .pathParams("productID",productID)
                 .when()
                 .body(pj)
-                .patch(EndPoints.UPDATE_PRODUCT_BY_ID)
-        .then();
+                .put(EndPoints.UPDATE_PRODUCT_BY_ID)
+        .then().log().all();
     }
     @Step // PATCH
     public void patchCrestedProductDetails(String model, int productID){
@@ -90,13 +109,13 @@ public class ProductsSteps {
        .then();
     }
     @Step//Delete
-    public ValidatableResponse delete(int productID){
+    public ValidatableResponse delete(Object productID){
        return SerenityRest .given()
                 .log().all()
                 .header("Content-Type", "application/json")
                 .pathParam("id",productID )
                 .when()
-                .delete(EndPoints.DELETE_PRODUCT_BY_ID)
+                .delete("/{id}")
                 .then();
 
     }
